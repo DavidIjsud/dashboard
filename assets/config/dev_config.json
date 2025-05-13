@@ -1,0 +1,6 @@
+{
+    "getUsersEndPoint" : "http://localhost:3000/users/all",
+    "getOrdersEndPoint" : "http://localhost:3000/orders/all",
+    "getProductsEndPoint" : "http://localhost:3000/product/all",
+    "getCategoriesEndPoint" : "http://localhost:3000/category/all"
+}
