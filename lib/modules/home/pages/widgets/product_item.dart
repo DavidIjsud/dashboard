@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:petshopdashboard/core/widgets/button.dart';
+import 'package:petshopdashboard/modules/home/viewmodels/home_viewmodel.dart';
+import 'package:provider/provider.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   final String name;
   final num price;
   final String imageUrl;
   final String description;
   final int totalInStock;
-  final int totalAmountOfProduct;
   final bool isSuspended;
+  final String productID;
 
   const ProductCard({
     super.key,
@@ -17,12 +19,26 @@ class ProductCard extends StatelessWidget {
     required this.imageUrl,
     required this.description,
     required this.totalInStock,
-    required this.totalAmountOfProduct,
     required this.isSuspended,
+    required this.productID,
   });
 
   @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  late final HomeViewmodel _homeViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeViewModel = context.read<HomeViewmodel>();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print('Image URL: ${widget.imageUrl}');
     return Card(
       elevation: 4,
       margin: const EdgeInsets.all(2),
@@ -34,7 +50,7 @@ class ProductCard extends StatelessWidget {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Image.network(
-              imageUrl,
+              Uri.encodeFull(widget.imageUrl),
               width: double.infinity,
               height: 180,
               fit: BoxFit.cover,
@@ -47,18 +63,18 @@ class ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: Theme.of(context).textTheme.titleMedium),
+                Text(widget.name, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 4),
                 Text(
-                  '\$${price.toStringAsFixed(2)}',
+                  '\$${widget.price.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.green),
                 ),
                 const SizedBox(height: 8),
-                Text(description, maxLines: 3, overflow: TextOverflow.ellipsis),
+                Text(widget.description, maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [Text('In Stock: $totalInStock'), Text('Total: $totalAmountOfProduct')],
+                  children: [Text('In Stock: ${widget.totalInStock}')],
                 ),
               ],
             ),
@@ -67,7 +83,13 @@ class ProductCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               CustomButton(text: 'Eliminar', onPressed: () {}, color: Colors.red),
-              CustomButton(text: isSuspended ? 'Activar' : 'Suspender', onPressed: () {}, color: Colors.yellow),
+              CustomButton(
+                text: widget.isSuspended ? 'Activar' : 'Suspender',
+                onPressed: () {
+                  _homeViewModel.suspendProduct(widget.productID, !widget.isSuspended);
+                },
+                color: Colors.yellow,
+              ),
             ],
           ),
         ],

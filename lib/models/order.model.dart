@@ -1,44 +1,45 @@
 import 'package:petshopdashboard/core/enums.dart';
 
 class OrderModel {
-  final num totalAmount;
-  final num discountAmount;
-  final num taxAmount;
-  final num shippingCost;
-  final PaymentMethod paymentMethod;
-  final PaymentStatus paymentStatus;
-  final OrderStatus orderStatus;
-  final bool isOrderDeleted;
-  final String userName;
+  String id;
+  OrderStatus status;
+  int taxAmount;
+  int shippingCost;
+  PaymentStatus paymentStatus;
+  PaymentMethod paymentMethod;
+  int totalPayment;
+  List<Product> products;
+  User user;
+  bool isOrderDeleted;
 
   OrderModel({
-    required this.totalAmount,
-    required this.discountAmount,
+    required this.id,
+    required this.status,
     required this.taxAmount,
     required this.shippingCost,
-    required this.paymentMethod,
     required this.paymentStatus,
-    required this.orderStatus,
+    required this.paymentMethod,
+    required this.totalPayment,
+    required this.products,
+    required this.user,
     required this.isOrderDeleted,
-    required this.userName,
   });
 
-  factory OrderModel.fromJson(Map<String, dynamic> json) {
-    return OrderModel(
-      totalAmount: json['totalAmount'],
-      discountAmount: json['discountAmount'],
-      taxAmount: json['taxAmount'],
-      shippingCost: json['shippingCost'],
-      paymentMethod: PaymentMethod.fromString(json['paymentMethod']),
-      paymentStatus: PaymentStatus.fromString(json['paymentStatus']),
-      orderStatus: OrderStatus.fromString(json['status']),
-      isOrderDeleted: json['isOrderDeleted'],
-      userName: json['user']['name'] ?? json['userName'] ?? 'Unknown User',
-    );
-  }
+  factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
+    id: json["id"],
+    status: OrderStatus.fromString(json["status"]),
+    taxAmount: json["taxAmount"],
+    shippingCost: json["shippingCost"],
+    paymentStatus: PaymentStatus.fromString(json["paymentStatus"]),
+    paymentMethod: PaymentMethod.fromString(json["paymentMethod"]),
+    totalPayment: json["totalPayment"],
+    products: List<Product>.from(json["products"].map((x) => Product.fromJson(x))),
+    user: User.fromJson(json["user"]),
+    isOrderDeleted: json["isOrderDeleted"],
+  );
 
   String getOrderStatusText() {
-    return OrderStatus.orderStatusText(orderStatus);
+    return OrderStatus.orderStatusText(status);
   }
 
   String getPaymentMethodText() {
@@ -48,4 +49,32 @@ class OrderModel {
   String getPaymentStatusText() {
     return PaymentStatus.paymentStatusText(paymentStatus);
   }
+}
+
+class Product {
+  int quantity;
+  double totalPayment;
+  String productId;
+  String productName;
+
+  Product({required this.quantity, required this.totalPayment, required this.productId, required this.productName});
+
+  factory Product.fromJson(Map<String, dynamic> json) => Product(
+    quantity: json["quantity"],
+    totalPayment: json["totalPayment"]?.toDouble(),
+    productId: json["productId"],
+    productName: json["productName"] ?? '',
+  );
+
+  Map<String, dynamic> toJson() => {"quantity": quantity, "totalPayment": totalPayment, "productId": productId};
+}
+
+class User {
+  String id;
+  String name;
+  String email;
+
+  User({required this.id, required this.name, required this.email});
+
+  factory User.fromJson(Map<String, dynamic> json) => User(id: json["id"], name: json["name"], email: json["email"]);
 }

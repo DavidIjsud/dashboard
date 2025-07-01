@@ -1,5 +1,6 @@
-import 'images_picker.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'images_picker.dart';
 
 class ImagesPickerImpl implements ImagesPicker {
   ImagesPickerImpl({required ImagePicker picker}) : pickerImage = picker;
@@ -7,15 +8,22 @@ class ImagesPickerImpl implements ImagesPicker {
   final ImagePicker pickerImage;
 
   @override
-  Future<String> pickImage() async {
-    final XFile? image = await pickerImage.pickImage(
-      source: ImageSource.gallery,
-    );
+  Future<XFile?> pickImage() async {
+    final XFile? image = await pickerImage.pickImage(source: ImageSource.gallery);
 
-    if (image == null) {
-      return '';
-    } else {
-      return image.path;
-    }
+    return image;
+  }
+
+  @override
+  MimeImageType getMimeType(String mimeType) {
+    return MimeImageType.fromString(mimeType);
+  }
+
+  @override
+  bool isCorrectImageMimeType(String mimeType) {
+    final mimeTypeResylt = getMimeType(mimeType);
+    return mimeTypeResylt == MimeImageType.png ||
+        mimeTypeResylt == MimeImageType.jpg ||
+        mimeTypeResylt == MimeImageType.jpeg;
   }
 }

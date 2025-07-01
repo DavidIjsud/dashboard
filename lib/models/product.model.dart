@@ -7,7 +7,6 @@ class ProductModel extends Equatable {
   String? image;
   String? description;
   int? totalInStock;
-  int? totalAmoutOfProduct;
   bool? isSuspended;
   String? categoryId;
   String? categoryName;
@@ -19,7 +18,6 @@ class ProductModel extends Equatable {
     this.image,
     this.description,
     this.totalInStock,
-    this.totalAmoutOfProduct,
     this.isSuspended,
     this.categoryId,
     this.categoryName,
@@ -27,29 +25,18 @@ class ProductModel extends Equatable {
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      id: json['\$id'],
+      id: json['id'],
       name: json['productName'],
       price: json['price'],
       image: json['image'],
       description: json['detailOfProduct'],
       totalInStock: json['totalInStock'],
-      totalAmoutOfProduct: json['totalAmount'],
       isSuspended: json['isSuspended'],
-      categoryId: json['category']['\$id'],
+      categoryId: json['category']['id'],
       categoryName: json['category']['categoryName'],
     );
   }
 
   @override
-  List<Object?> get props => [
-    id,
-    name,
-    price,
-    image,
-    description,
-    totalInStock,
-    totalAmoutOfProduct,
-    isSuspended,
-    categoryId,
-  ];
+  List<Object?> get props => [categoryName, id, name, price, image, description, totalInStock, isSuspended, categoryId];
 }

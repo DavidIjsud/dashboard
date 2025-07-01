@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:petshopdashboard/models/category.dart';
 import 'package:petshopdashboard/modules/home/pages/widgets/product_detail.dart';
+import 'package:petshopdashboard/modules/home/pages/widgets/product_filter_widget.dart';
 import 'package:petshopdashboard/modules/home/pages/widgets/product_item.dart';
 import 'package:petshopdashboard/modules/home/viewmodels/home_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,8 @@ class ProductsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeViewmodel = context.read<HomeViewmodel>();
     homeViewmodel.getAllProducts();
+    final TextEditingController searchController = TextEditingController(); // Add controller
+
     return LayoutBuilder(
       builder: (_, constraints) {
         return Row(
@@ -35,23 +38,87 @@ class ProductsWidget extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Buscar productos.',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: searchController, // Attach controller
+                                    onSubmitted: (value) {
+                                      if (value.isNotEmpty) {
+                                        homeViewmodel.getAllProducts(searchTerm: value);
+                                      }
+                                    },
+                                    keyboardType: TextInputType.text,
+                                    decoration: InputDecoration(
+                                      hintText: 'Buscar productos.',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: Colors.grey),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: Colors.grey, width: 1),
+                                      ),
+
+                                      suffixIcon: IconButton(
+                                        icon: Icon(Icons.search, color: Colors.grey),
+                                        onPressed: () {
+                                          if (searchController.value.text.isNotEmpty) {
+                                            homeViewmodel.getAllProducts(searchTerm: searchController.text);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.blue, width: 2),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: Icon(Icons.filter_list, color: Colors.blue),
+                                  tooltip: 'Filtrar productos',
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: Text('Filtrar productos'),
+                                            content: SizedBox(
+                                              width: 400, // Adjust as needed
+                                              child: ProductFilterWidget(
+                                                categories: homeViewmodel.state?.categories ?? [],
+                                                onFilterChanged: ({
+                                                  String? categoryId,
+                                                  bool? isSuspended,
+                                                  double? priceMax,
+                                                  double? priceMin,
+                                                  int? stockMax,
+                                                  int? stockMin,
+                                                }) {
+                                                  homeViewmodel.getAllProducts(
+                                                    selectedCategoryId: categoryId,
+                                                    stockMin: stockMin,
+                                                    stockMax: stockMax,
+                                                    priceMin: priceMin,
+                                                    priceMax: priceMax,
+                                                    isSuspended: isSuspended,
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.of(context).pop(),
+                                                child: Text('Cerrar'),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  },
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey, width: 1),
-                                ),
-                              ),
-                              keyboardType: TextInputType.text,
+                              ],
                             ),
                             const SizedBox(height: 16),
 
@@ -62,7 +129,7 @@ class ProductsWidget extends StatelessWidget {
                                   crossAxisCount: homeViewModel.state?.productsState.showProductDetail == true ? 4 : 5,
                                   crossAxisSpacing: 3,
                                   mainAxisSpacing: 3,
-                                  childAspectRatio: constraints.maxWidth / (constraints.maxHeight * 2.2),
+                                  childAspectRatio: constraints.maxWidth / (constraints.maxHeight * 2.4),
                                 ),
                                 itemBuilder: (_, index) {
                                   final product = homeViewModel.state?.productsState.products[index];
@@ -77,7 +144,7 @@ class ProductsWidget extends StatelessWidget {
                                       description: product?.description ?? '',
                                       totalInStock: product?.totalInStock ?? 0,
                                       isSuspended: product?.isSuspended ?? false,
-                                      totalAmountOfProduct: product?.totalAmoutOfProduct ?? 0,
+                                      productID: product?.id ?? '',
                                     ),
                                   );
                                 },
@@ -98,12 +165,12 @@ class ProductsWidget extends StatelessWidget {
                     ? Flexible(
                       flex: 1,
                       child: ProductEditor(
+                        productID: homeViewModel.state?.productsState.productDetail?.id ?? '',
                         imageUrl: homeViewModel.state?.productsState.productDetail?.image ?? '',
                         name: homeViewModel.state?.productsState.productDetail?.name ?? '',
                         price: homeViewModel.state?.productsState.productDetail?.price ?? 0.0,
                         description: homeViewModel.state?.productsState.productDetail?.description ?? '',
                         stock: homeViewModel.state?.productsState.productDetail?.totalInStock ?? 0,
-                        totalProduced: homeViewModel.state?.productsState.productDetail?.totalAmoutOfProduct ?? 0,
                         categoryID: homeViewModel.state?.productsState.productDetail?.categoryId ?? '',
                       ),
                     )

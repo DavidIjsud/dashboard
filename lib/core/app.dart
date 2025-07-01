@@ -36,13 +36,8 @@ class _AppState extends State<App> {
           case InitializationStatus.initialized:
             result = MultiProvider(
               providers: [
-                Provider(create: (_) => widget.bootstrapper.imagesPicker),
-                ChangeNotifierProvider<LoginViewModel>(
-                  create: (_) => widget.bootstrapper.loginViewModel,
-                ),
-                ChangeNotifierProvider<HomeViewmodel>(
-                  create: (_) => widget.bootstrapper.homeViewmodel,
-                ),
+                ChangeNotifierProvider<LoginViewModel>(create: (_) => widget.bootstrapper.loginViewModel),
+                ChangeNotifierProvider<HomeViewmodel>(create: (_) => widget.bootstrapper.homeViewmodel),
               ],
               child: const MaterialApp(home: HomePage()),
             );

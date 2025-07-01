@@ -18,13 +18,7 @@ import 'package:petshopdashboard/services/network/network_client.dart';
 import 'package:petshopdashboard/services/storage/secure_storage.dart';
 import 'package:petshopdashboard/services/storage/secure_storage.impl.dart';
 
-enum InitializationStatus {
-  disposed,
-  error,
-  initialized,
-  initializing,
-  unsafeDevice,
-}
+enum InitializationStatus { disposed, error, initialized, initializing, unsafeDevice }
 
 abstract class Bootstrapper {
   factory Bootstrapper.fromFlavor(Flavor flavor) {
@@ -42,7 +36,6 @@ abstract class Bootstrapper {
   }
 
   LoginViewModel get loginViewModel;
-  ImagesPicker get imagesPicker;
   HomeViewmodel get homeViewmodel;
   Stream<InitializationStatus> get initializationStream;
 
@@ -54,8 +47,7 @@ class _DefaultBootstrapper implements Bootstrapper {
   _DefaultBootstrapper(Flavor flavor) : _flavor = flavor;
 
   final Flavor _flavor;
-  InitializationStatus _initializationStatus =
-      InitializationStatus.initializing;
+  InitializationStatus _initializationStatus = InitializationStatus.initializing;
   final StreamController<InitializationStatus> _initializationStreamController =
       StreamController<InitializationStatus>.broadcast();
   //view Models
@@ -71,24 +63,14 @@ class _DefaultBootstrapper implements Bootstrapper {
   late ImagesPicker _imagesPicker;
 
   Future<void> _initializeViewModels() async {
-    _loginViewModel = LoginViewModel(
-      loginRepository: _loginRepository,
-      secureStorage: _secureStorage,
-    );
-    _homeViewmodel = HomeViewmodel(homeRepository: _homeRepository)
-      ..initState();
+    _loginViewModel = LoginViewModel(loginRepository: _loginRepository, secureStorage: _secureStorage);
+    _homeViewmodel = HomeViewmodel(homeRepository: _homeRepository, imagesPicker: _imagesPicker)..initState();
   }
 
   Future<void> _initializeRepositories() async {
-    _loginRepository = LoginRepositoryImpl(
-      networkClient: _networkClient,
-      endpoints: _endpoints,
-    );
+    _loginRepository = LoginRepositoryImpl(networkClient: _networkClient, endpoints: _endpoints);
 
-    _homeRepository = HomeRepositoryImpl(
-      networkClient: _networkClient,
-      endpoints: _endpoints,
-    );
+    _homeRepository = HomeRepositoryImpl(networkClient: _networkClient, endpoints: _endpoints);
   }
 
   Future<void> _loadEndPointsFromRootBundle() async {
@@ -126,14 +108,10 @@ class _DefaultBootstrapper implements Bootstrapper {
   void dispose() {}
 
   @override
-  Stream<InitializationStatus> get initializationStream =>
-      _initializationStreamController.stream;
+  Stream<InitializationStatus> get initializationStream => _initializationStreamController.stream;
 
   @override
   LoginViewModel get loginViewModel => _loginViewModel;
-
-  @override
-  ImagesPicker get imagesPicker => _imagesPicker;
 
   @override
   HomeViewmodel get homeViewmodel => _homeViewmodel;
