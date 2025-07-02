@@ -39,8 +39,9 @@ class OrdersWidget extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         TextField(
+                          onSubmitted: (value) => homeViewModel.getAllOrders(searchTermName: value),
                           decoration: InputDecoration(
-                            hintText: 'Buscar ordenes.',
+                            hintText: 'Buscar ordenes por nombre',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(color: Colors.grey),

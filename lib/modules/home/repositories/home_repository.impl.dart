@@ -51,12 +51,13 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<Either<Fail, List<OrderModel>>> getOrders() async {
-    final userRequest = OrderRequest(urlOrdrs: _endpoints.getOrdersEndPoint);
+  Future<Either<Fail, List<OrderModel>>> getOrders({String? searchTermName}) async {
+    final userRequest = OrderRequest(urlOrdrs: _endpoints.getOrdersEndPoint, searchTermName: searchTermName);
     try {
-      final response = await _networkClient.get(
+      final response = await _networkClient.post(
         Uri.parse(userRequest.url),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: userRequest.body,
       );
 
       if (response.statusCode == 200) {

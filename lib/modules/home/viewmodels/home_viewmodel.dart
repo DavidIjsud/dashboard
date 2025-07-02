@@ -324,12 +324,12 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
     );
   }
 
-  Future<void> getAllOrders() async {
+  Future<void> getAllOrders({String? searchTermName}) async {
     setState(
       state?.copyWith(ordersState: OrdersState(isLoadingOrders: true, orders: [], ocurredErrorOnGetOrders: false)),
     );
 
-    final responseOrders = await _homeRepository.getOrders();
+    final responseOrders = await _homeRepository.getOrders(searchTermName: searchTermName);
 
     responseOrders.fold(
       (fail) {

@@ -9,7 +9,7 @@ import 'package:petshopdashboard/models/user.model.dart';
 abstract class HomeRepository {
   Future<Either<Fail, List<OrderDetail>>> getOrderDetails(String orderId);
   Future<Either<Fail, List<UserModel>>> getUsers();
-  Future<Either<Fail, List<OrderModel>>> getOrders();
+  Future<Either<Fail, List<OrderModel>>> getOrders({String? searchTermName});
   Future<Either<Fail, List<ProductModel>>> getProducts({
     String? searchTerm,
     String? selectedCategoryId,
