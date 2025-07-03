@@ -57,6 +57,33 @@ class OrdersWidget extends StatelessWidget {
                           ),
                           keyboardType: TextInputType.text,
                         ),
+                        const SizedBox(height: 8),
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                homeViewModel.getAllOrders(dateOrdersCreated: picked);
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.filter_alt_outlined, color: Colors.blue),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Filtrar por fecha',
+                                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         Expanded(
                           child: GridView.builder(

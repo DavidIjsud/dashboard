@@ -19,6 +19,7 @@ import 'package:petshopdashboard/models/order_request.dart';
 import 'package:petshopdashboard/models/product.model.dart';
 import 'package:petshopdashboard/models/product_request.dart';
 import 'package:petshopdashboard/models/suspend_product_request.dart';
+import 'package:petshopdashboard/models/update_order_status_request.dart';
 import 'package:petshopdashboard/models/user.model.dart';
 import 'package:petshopdashboard/models/users_request.dart';
 import 'package:petshopdashboard/modules/home/repositories/home_repository.dart';
@@ -51,8 +52,16 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<Either<Fail, List<OrderModel>>> getOrders({String? searchTermName}) async {
-    final userRequest = OrderRequest(urlOrdrs: _endpoints.getOrdersEndPoint, searchTermName: searchTermName);
+  Future<Either<Fail, List<OrderModel>>> getOrders({
+    String? searchTermName,
+    DateTime? dateOrdersCreated,
+    String? orderStatus,
+  }) async {
+    final userRequest = OrderRequest(
+      urlOrdrs: _endpoints.getOrdersEndPoint,
+      searchTermName: searchTermName,
+      dateOrderCreated: dateOrdersCreated?.toIso8601String(),
+    );
     try {
       final response = await _networkClient.post(
         Uri.parse(userRequest.url),
@@ -220,6 +229,31 @@ class HomeRepositoryImpl implements HomeRepository {
       }
     } catch (e) {
       return Future.value(Left(Fail(e.toString())));
+    }
+  }
+
+  @override
+  Future<Either<Fail, bool>> updateOrderStatu(String orderId, String status) async {
+    final updateOrderRequest = UpdateOrderStatusRequest(
+      orderId: orderId,
+      status: status,
+      urlRequest: _endpoints.updateOrderStatusEndPoint,
+    );
+
+    try {
+      final response = await _networkClient.post(
+        Uri.parse(updateOrderRequest.url),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: updateOrderRequest.body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return const Right(true);
+      } else {
+        return const Right(false);
+      }
+    } catch (e) {
+      return Left(Fail(e.toString()));
     }
   }
 }

@@ -24,6 +24,8 @@ class OrdersState extends Equatable {
   final bool showOrderDetail;
   final OrderModel? orderDetail;
 
+  final bool isUpdatingOrderStatus; // <-- Add this line
+
   const OrdersState({
     this.isLoadingOrders = false,
     this.orders = const [],
@@ -33,6 +35,7 @@ class OrdersState extends Equatable {
     this.orderDetails = const [],
     this.showOrderDetail = false,
     this.orderDetail,
+    this.isUpdatingOrderStatus = false, // <-- Add this line
   });
 
   OrdersState copyWith({
@@ -44,6 +47,7 @@ class OrdersState extends Equatable {
     List<OrderDetail>? orderDetails,
     bool? showOrderDetail,
     OrderModel? orderDetail,
+    bool? isUpdatingOrderStatus, // <-- Add this line
   }) {
     return OrdersState(
       isLoadingOrders: isLoadingOrders ?? this.isLoadingOrders,
@@ -54,6 +58,7 @@ class OrdersState extends Equatable {
       orderDetails: orderDetails ?? this.orderDetails,
       showOrderDetail: showOrderDetail ?? this.showOrderDetail,
       orderDetail: orderDetail ?? this.orderDetail,
+      isUpdatingOrderStatus: isUpdatingOrderStatus ?? this.isUpdatingOrderStatus, // <-- Add this line
     );
   }
 
@@ -65,6 +70,7 @@ class OrdersState extends Equatable {
     isLoadingOrderDetails,
     ocurredErrorOnGetOrderDetails,
     orderDetails,
+    isUpdatingOrderStatus, // <-- Add this line
   ];
 }
 
@@ -324,12 +330,16 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
     );
   }
 
-  Future<void> getAllOrders({String? searchTermName}) async {
+  Future<void> getAllOrders({String? searchTermName, DateTime? dateOrdersCreated, String? orderStatus}) async {
     setState(
       state?.copyWith(ordersState: OrdersState(isLoadingOrders: true, orders: [], ocurredErrorOnGetOrders: false)),
     );
 
-    final responseOrders = await _homeRepository.getOrders(searchTermName: searchTermName);
+    final responseOrders = await _homeRepository.getOrders(
+      searchTermName: searchTermName,
+      dateOrdersCreated: dateOrdersCreated,
+      orderStatus: orderStatus,
+    );
 
     responseOrders.fold(
       (fail) {
@@ -406,6 +416,24 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
             ),
           ),
         );
+      },
+    );
+  }
+
+  Future<void> updateOrderStatus(String orderId, String newStatus) async {
+    setState(state?.copyWith(ordersState: state?.ordersState.copyWith(isUpdatingOrderStatus: true)));
+
+    final response = await _homeRepository.updateOrderStatu(orderId, newStatus);
+    response.fold(
+      (fail) {
+        print('Error updating order status: ${fail.failure.toString()}');
+        setState(state?.copyWith(ordersState: state?.ordersState.copyWith(isUpdatingOrderStatus: false)));
+      },
+      (success) {
+        setState(state?.copyWith(ordersState: state?.ordersState.copyWith(isUpdatingOrderStatus: false)));
+        if (success) {
+          getAllOrders();
+        }
       },
     );
   }
