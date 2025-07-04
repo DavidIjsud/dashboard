@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:petshopdashboard/models/category.dart';
+import 'package:petshopdashboard/modules/home/pages/widgets/create_product.dart';
 import 'package:petshopdashboard/modules/home/pages/widgets/product_detail.dart';
 import 'package:petshopdashboard/modules/home/pages/widgets/product_filter_widget.dart';
 import 'package:petshopdashboard/modules/home/pages/widgets/product_item.dart';
@@ -63,7 +64,6 @@ class ProductsWidget extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide(color: Colors.grey, width: 1),
                                       ),
-
                                       suffixIcon: IconButton(
                                         icon: Icon(Icons.search, color: Colors.grey),
                                         onPressed: () {
@@ -117,6 +117,16 @@ class ProductsWidget extends StatelessWidget {
                                           ),
                                     );
                                   },
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(content: CreateProductForm()),
+                                    );
+                                  },
+                                  child: Text('Agregar producto'),
                                 ),
                               ],
                             ),

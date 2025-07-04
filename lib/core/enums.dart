@@ -2,7 +2,7 @@ enum OrderStatus {
   pending,
   shipped,
   delivered,
-  canceled;
+  cancelled;
 
   static String orderStatusText(OrderStatus orderStatus) {
     switch (orderStatus) {
@@ -10,7 +10,7 @@ enum OrderStatus {
         return 'Pendiente';
       case OrderStatus.delivered:
         return 'Entregado';
-      case OrderStatus.canceled:
+      case OrderStatus.cancelled:
         return 'Cancelado';
       case OrderStatus.shipped:
         return 'Enviado';
@@ -24,7 +24,7 @@ enum OrderStatus {
       case 'delivered':
         return OrderStatus.delivered;
       case 'cancelled':
-        return OrderStatus.canceled;
+        return OrderStatus.cancelled;
       case 'shipped':
         return OrderStatus.shipped;
       default:

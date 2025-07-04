@@ -4,14 +4,37 @@ import 'package:petshopdashboard/modules/home/pages/widgets/order_detail.dart';
 import 'package:petshopdashboard/modules/home/viewmodels/home_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-class OrdersWidget extends StatelessWidget {
+class OrdersWidget extends StatefulWidget {
   const OrdersWidget({super.key});
 
   @override
+  State<OrdersWidget> createState() => _OrdersWidgetState();
+}
+
+class _OrdersWidgetState extends State<OrdersWidget> {
+  String? selectedStatus;
+
+  static const statusMap = {
+    'pending': 'Pendiente',
+    'shipped': 'Enviado',
+    'delivered': 'Entregado',
+    'cancelled': 'Cancelado',
+  };
+
+  late final HomeViewmodel homeViewmodel;
+
+  @override
+  void initState() {
+    super.initState();
+    homeViewmodel = context.read<HomeViewmodel>();
+    // Only fetch orders once, not on every build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      homeViewmodel.getAllOrders();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final HomeViewmodel homeViewmodel = context.read<HomeViewmodel>();
-    homeViewmodel.getAllOrders();
-    print('OrdersWidget build');
     return Consumer<HomeViewmodel>(
       builder: (_, homeViewModel, Widget? w) {
         final ordersState = homeViewModel.state?.ordersState;
@@ -26,7 +49,7 @@ class OrdersWidget extends StatelessWidget {
                 children: [
                   // Orders List
                   Expanded(
-                    flex: 3,
+                    flex: 5,
                     child: Column(
                       children: [
                         Align(
@@ -58,42 +81,74 @@ class OrdersWidget extends StatelessWidget {
                           keyboardType: TextInputType.text,
                         ),
                         const SizedBox(height: 8),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime.now(),
-                              );
-                              if (picked != null) {
-                                homeViewModel.getAllOrders(dateOrdersCreated: picked);
-                              }
-                            },
-                            child: Row(
-                              children: [
-                                Icon(Icons.filter_alt_outlined, color: Colors.blue),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Filtrar por fecha',
-                                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
+                        Row(
+                          children: [
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime.now(),
+                                  );
+                                  if (picked != null) {
+                                    setState(() {
+                                      selectedStatus = null;
+                                    });
+                                    homeViewModel.getAllOrders(dateOrdersCreated: picked);
+                                  }
+                                },
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.filter_alt_outlined, color: Colors.blue),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Filtrar por fecha',
+                                      style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 12),
+                            ...statusMap.entries.map((entry) {
+                              final isSelected = selectedStatus == entry.key;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: isSelected ? Colors.blue : null,
+                                    foregroundColor: isSelected ? Colors.white : Colors.blue,
+                                    side: BorderSide(color: Colors.blue),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      if (isSelected) {
+                                        selectedStatus = null;
+                                        homeViewModel.clearOrderStatusFilter();
+                                      } else {
+                                        selectedStatus = entry.key;
+                                        homeViewModel.filterOrdersByStatus(entry.key);
+                                      }
+                                    });
+                                  },
+                                  child: Text(entry.value),
+                                ),
+                              );
+                            }).toList(),
+                          ],
                         ),
                         const SizedBox(height: 16),
                         Expanded(
                           child: GridView.builder(
                             itemCount: ordersState?.orders.length ?? 0,
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount:
-                                  ordersState?.showOrderDetail == true ? 4 : 5, // fewer columns for more width per item
-                              crossAxisSpacing: 12, // more spacing
-                              mainAxisSpacing: 12, // more spacing
-                              childAspectRatio: 0.9, // wider cards
+                              crossAxisCount: ordersState?.showOrderDetail == true ? 4 : 5,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.9,
                             ),
                             itemBuilder: (_, index) {
                               final order = ordersState?.orders[index];
@@ -122,7 +177,7 @@ class OrdersWidget extends StatelessWidget {
                   // Order Detail Panel
                   if (ordersState?.showOrderDetail == true && ordersState?.orderDetail != null)
                     Expanded(
-                      flex: 1,
+                      flex: 2,
                       child: Container(
                         margin: const EdgeInsets.only(left: 16),
                         padding: const EdgeInsets.all(16),
@@ -150,7 +205,14 @@ class OrdersWidget extends StatelessWidget {
                               ],
                             ),
                             const Divider(),
-                            Expanded(child: OrderDetailWidget(order: ordersState!.orderDetail!)),
+                            Expanded(
+                              child: OrderDetailWidget(
+                                order: ordersState!.orderDetail!,
+                                onUpdateStatus: () {
+                                  selectedStatus = null;
+                                },
+                              ),
+                            ),
                           ],
                         ),
                       ),

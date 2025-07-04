@@ -14,6 +14,7 @@ enum HomeViewPages { users, orders, products }
 class OrdersState extends Equatable {
   final bool isLoadingOrders;
   final List<OrderModel> orders;
+  final List<OrderModel> allOrders; // <-- Add this line
   final bool ocurredErrorOnGetOrders;
 
   //TODO: by the momento these 3 lines are not used, in the future we can use them to show order details
@@ -29,6 +30,7 @@ class OrdersState extends Equatable {
   const OrdersState({
     this.isLoadingOrders = false,
     this.orders = const [],
+    this.allOrders = const [], // <-- Add this line
     this.ocurredErrorOnGetOrders = false,
     this.isLoadingOrderDetails = false,
     this.ocurredErrorOnGetOrderDetails = false,
@@ -41,6 +43,7 @@ class OrdersState extends Equatable {
   OrdersState copyWith({
     bool? isLoadingOrders,
     List<OrderModel>? orders,
+    List<OrderModel>? allOrders, // <-- Add this line
     bool? ocurredErrorOnGetOrders,
     bool? isLoadingOrderDetails,
     bool? ocurredErrorOnGetOrderDetails,
@@ -52,6 +55,7 @@ class OrdersState extends Equatable {
     return OrdersState(
       isLoadingOrders: isLoadingOrders ?? this.isLoadingOrders,
       orders: orders ?? this.orders,
+      allOrders: allOrders ?? this.allOrders, // <-- Add this line
       ocurredErrorOnGetOrders: ocurredErrorOnGetOrders ?? this.ocurredErrorOnGetOrders,
       isLoadingOrderDetails: isLoadingOrderDetails ?? this.isLoadingOrderDetails,
       ocurredErrorOnGetOrderDetails: ocurredErrorOnGetOrderDetails ?? this.ocurredErrorOnGetOrderDetails,
@@ -66,6 +70,7 @@ class OrdersState extends Equatable {
   List<Object?> get props => [
     isLoadingOrders,
     orders,
+    allOrders, // <-- Add this line
     ocurredErrorOnGetOrders,
     isLoadingOrderDetails,
     ocurredErrorOnGetOrderDetails,
@@ -83,6 +88,7 @@ class ProductsState extends Equatable {
   final XFile? fileToUpload;
   final bool isUpdatingProduct;
   final bool isSupendingProduct;
+  final bool isCreatingNewProduct;
 
   const ProductsState({
     this.isLoadingProducts = false,
@@ -93,6 +99,7 @@ class ProductsState extends Equatable {
     this.fileToUpload,
     this.isUpdatingProduct = false,
     this.isSupendingProduct = false,
+    this.isCreatingNewProduct = false,
   });
 
   copyWith({
@@ -104,6 +111,7 @@ class ProductsState extends Equatable {
     XFile? fileToUpload,
     bool? isUpdatingProduct,
     bool? isSupendingProduct,
+    bool? isCreatingNewProduct,
   }) {
     return ProductsState(
       isLoadingProducts: isLoadingProducts ?? this.isLoadingProducts,
@@ -114,6 +122,7 @@ class ProductsState extends Equatable {
       fileToUpload: fileToUpload ?? this.fileToUpload,
       isUpdatingProduct: isUpdatingProduct ?? this.isUpdatingProduct,
       isSupendingProduct: isSupendingProduct ?? this.isSupendingProduct,
+      isCreatingNewProduct: isCreatingNewProduct ?? this.isCreatingNewProduct,
     );
   }
 
@@ -126,6 +135,8 @@ class ProductsState extends Equatable {
     productDetail,
     fileToUpload,
     isUpdatingProduct,
+    isSupendingProduct,
+    isCreatingNewProduct,
   ];
 }
 
@@ -229,6 +240,14 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
     }
   }
 
+  Future<XFile?> pickImageToCreateProduct() async {
+    final image = await _imagesPicker.pickImage();
+    if (image != null && _imagesPicker.isCorrectImageMimeType(image.mimeType!)) {
+      return image;
+    }
+    return null;
+  }
+
   Future<void> removeImage() async {
     setState(state?.copyWith(productsState: state?.productsState.copyWith(fileToUpload: null)));
   }
@@ -267,6 +286,39 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
         setState(state?.copyWith(productsState: state?.productsState.copyWith(isUpdatingProduct: false)));
         getAllProducts();
         hideProductDetail();
+      },
+    );
+  }
+
+  Future<void> createProduct({
+    required String productName,
+    required num price,
+    required int totalInStock,
+    required String detailOfProduct,
+    required String categoryId,
+    required XFile image, // <-- Not optional anymore
+  }) async {
+    setState(state?.copyWith(productsState: state?.productsState.copyWith(isCreatingNewProduct: true)));
+
+    final response = await _homeRepository.createProduct(
+      name: productName,
+      price: price,
+      totalInStock: totalInStock,
+      detailOfProduct: detailOfProduct,
+      categoryId: categoryId,
+      imageFile: image, // <-- Not optional anymore
+    );
+
+    response.fold(
+      (fail) {
+        print('Error creating product: ${fail.failure.toString()}');
+        setState(state?.copyWith(productsState: state?.productsState.copyWith(isCreatingNewProduct: false)));
+      },
+      (success) {
+        setState(state?.copyWith(productsState: state?.productsState.copyWith(isCreatingNewProduct: false)));
+        if (success) {
+          getAllProducts();
+        }
       },
     );
   }
@@ -332,7 +384,9 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
 
   Future<void> getAllOrders({String? searchTermName, DateTime? dateOrdersCreated, String? orderStatus}) async {
     setState(
-      state?.copyWith(ordersState: OrdersState(isLoadingOrders: true, orders: [], ocurredErrorOnGetOrders: false)),
+      state?.copyWith(
+        ordersState: OrdersState(isLoadingOrders: true, orders: [], allOrders: [], ocurredErrorOnGetOrders: false),
+      ),
     );
 
     final responseOrders = await _homeRepository.getOrders(
@@ -344,15 +398,38 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
     responseOrders.fold(
       (fail) {
         setState(
-          state?.copyWith(ordersState: OrdersState(isLoadingOrders: false, orders: [], ocurredErrorOnGetOrders: true)),
+          state?.copyWith(
+            ordersState: OrdersState(isLoadingOrders: false, orders: [], allOrders: [], ocurredErrorOnGetOrders: true),
+          ),
         );
       },
       (orders) => setState(
         state?.copyWith(
-          ordersState: OrdersState(isLoadingOrders: false, orders: orders, ocurredErrorOnGetOrders: false),
+          ordersState: OrdersState(
+            isLoadingOrders: false,
+            orders: orders,
+            allOrders: orders, // Save all orders for filtering
+            ocurredErrorOnGetOrders: false,
+          ),
         ),
       ),
     );
+  }
+
+  void filterOrdersByStatus(String status) {
+    final allOrders = state?.ordersState.allOrders ?? [];
+    final filtered =
+        allOrders.where((order) {
+          print(
+            'Filtering order: ${order.id} with status: ${order.status.toString().split('.').last} and the status is $status',
+          );
+          return order.status.toString().split('.').last == status;
+        }).toList();
+    setState(state?.copyWith(ordersState: state?.ordersState.copyWith(orders: filtered)));
+  }
+
+  void clearOrderStatusFilter() {
+    setState(state?.copyWith(ordersState: state?.ordersState.copyWith(orders: state?.ordersState.allOrders)));
   }
 
   Future<void> getAllUsers() async {
@@ -416,6 +493,24 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
             ),
           ),
         );
+      },
+    );
+  }
+
+  Future<void> updateOrderPaymentStatus(String orderId, String newStatus) async {
+    setState(state?.copyWith(ordersState: state?.ordersState.copyWith(isUpdatingOrderStatus: true)));
+
+    final response = await _homeRepository.updatePaymentStatu(orderId, newStatus);
+    response.fold(
+      (fail) {
+        print('Error updating order status: ${fail.failure.toString()}');
+        setState(state?.copyWith(ordersState: state?.ordersState.copyWith(isUpdatingOrderStatus: false)));
+      },
+      (success) {
+        setState(state?.copyWith(ordersState: state?.ordersState.copyWith(isUpdatingOrderStatus: false)));
+        if (success) {
+          getAllOrders();
+        }
       },
     );
   }

@@ -58,7 +58,7 @@ class UsersWidget extends StatelessWidget {
                       ),
                       itemBuilder: (_, index) {
                         final user = homeViewModel.state?.users[index];
-                        return UserItemCard(name: user?.name ?? '', email: user?.email ?? '');
+                        return UserItemCard(name: user?.name, email: user?.email, lastName: user?.lastName);
                       },
                     ),
                   ),

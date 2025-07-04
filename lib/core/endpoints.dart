@@ -7,6 +7,8 @@ class Endpoints {
     required this.suspendProductEndPoint,
     required this.getOrderDetailsEndPoint,
     required this.updateOrderStatusEndPoint,
+    required this.updatePaymentStatusEndPoint,
+    required this.createProductEndPoint,
   });
 
   final String getUsersEndPoint;
@@ -16,6 +18,8 @@ class Endpoints {
   final String suspendProductEndPoint;
   final String getOrderDetailsEndPoint;
   final String updateOrderStatusEndPoint;
+  final String updatePaymentStatusEndPoint;
+  final String createProductEndPoint;
 
   factory Endpoints.fromJson(Map<String, dynamic> json) {
     return Endpoints(
@@ -26,6 +30,8 @@ class Endpoints {
       suspendProductEndPoint: json[_AttributesKeys.suspendProductEndPoint],
       getOrderDetailsEndPoint: json[_AttributesKeys.getOrderDetailsEndPoint],
       updateOrderStatusEndPoint: json[_AttributesKeys.updateOrderStatusEndPoint],
+      updatePaymentStatusEndPoint: json[_AttributesKeys.updateOrderPaymentStatusEndPoint],
+      createProductEndPoint: json[_AttributesKeys.createProductEndPoint],
     );
   }
 }
@@ -38,4 +44,6 @@ abstract class _AttributesKeys {
   static const String suspendProductEndPoint = 'suspendProductEndPoint';
   static const String getOrderDetailsEndPoint = 'getOrderDetailsEndPoint';
   static const String updateOrderStatusEndPoint = 'updateOrderStatusEndPoint';
+  static const String updateOrderPaymentStatusEndPoint = 'updateOrderPaymentStatusEndPoint';
+  static const String createProductEndPoint = 'createProductEndPoint';
 }

@@ -5,9 +5,10 @@ import 'package:petshopdashboard/components/widgets/modals.dart';
 import 'package:petshopdashboard/components/widgets/primary_button.dart';
 
 class UserItemCard extends StatelessWidget {
-  final String name;
-  final String email;
-  const UserItemCard({super.key, required this.name, required this.email});
+  final String? name;
+  final String? lastName;
+  final String? email;
+  const UserItemCard({super.key, this.name, this.lastName, this.email});
 
   @override
   Widget build(BuildContext context) {
@@ -19,16 +20,11 @@ class UserItemCard extends StatelessWidget {
             return Center(
               child: Container(
                 width: 180,
-
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
+                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 3)),
                   ],
                 ),
                 child: Padding(
@@ -36,20 +32,9 @@ class UserItemCard extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      PrimaryButton(
-                        width: 160,
-                        height: 30,
-                        text: 'Eliminar',
-                        onTap: () {},
-                      ),
+                      PrimaryButton(width: 160, height: 30, text: 'Eliminar', onTap: () {}),
                       const SizedBox(height: 5.0),
-                      PrimaryButton(
-                        width: 160,
-                        height: 30,
-                        text: 'Mandar notificación',
-
-                        onTap: () {},
-                      ),
+                      PrimaryButton(width: 160, height: 30, text: 'Mandar notificación', onTap: () {}),
                     ],
                   ),
                 ),
@@ -78,23 +63,20 @@ class UserItemCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        if (name != null || lastName != null)
+                          Text(
+                            '${name ?? ''}${lastName != null ? ' $lastName' : ''}',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          email,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                        if (email != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            email!,
+                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        ],
                       ],
                     ),
                   ),

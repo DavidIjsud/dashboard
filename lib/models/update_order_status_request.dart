@@ -13,3 +13,15 @@ class UpdateOrderStatusRequest extends NetworkRequest {
   @override
   String? get body => json.encode({'orderId': orderId, 'orderStatus': status});
 }
+
+class UpdateOrderPaymentStatusRequest extends NetworkRequest {
+  UpdateOrderPaymentStatusRequest({required this.orderId, required this.paymentStatus, required this.urlRequest})
+    : super(url: urlRequest);
+
+  final String orderId;
+  final String paymentStatus;
+  final String urlRequest;
+
+  @override
+  String? get body => json.encode({'orderId': orderId, 'paymentStatus': paymentStatus});
+}

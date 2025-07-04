@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:petshopdashboard/core/endpoints.dart';
 import 'package:petshopdashboard/models/category.dart';
 import 'package:petshopdashboard/models/category_request.dart';
+import 'package:petshopdashboard/models/create_product.request.dart';
 import 'package:petshopdashboard/models/order.model.dart';
 import 'package:petshopdashboard/models/order_detail.model.dart';
 import 'package:petshopdashboard/models/order_detail_request.dart';
@@ -24,6 +25,7 @@ import 'package:petshopdashboard/models/user.model.dart';
 import 'package:petshopdashboard/models/users_request.dart';
 import 'package:petshopdashboard/modules/home/repositories/home_repository.dart';
 import 'package:petshopdashboard/services/network/network_client.dart';
+import 'package:provider/provider.dart';
 
 class HomeRepositoryImpl implements HomeRepository {
   HomeRepositoryImpl({required Endpoints endpoints, required NetworkClient networkClient})
@@ -253,6 +255,86 @@ class HomeRepositoryImpl implements HomeRepository {
         return const Right(false);
       }
     } catch (e) {
+      return Left(Fail(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Fail, bool>> updatePaymentStatu(String orderId, String status) async {
+    final updateOrderRequest = UpdateOrderPaymentStatusRequest(
+      orderId: orderId,
+      paymentStatus: status,
+      urlRequest: _endpoints.updatePaymentStatusEndPoint,
+    );
+
+    try {
+      final response = await _networkClient.post(
+        Uri.parse(updateOrderRequest.url),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: updateOrderRequest.body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return const Right(true);
+      } else {
+        return const Right(false);
+      }
+    } catch (e) {
+      return Left(Fail(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Fail, bool>> createProduct({
+    required String name,
+    required num price,
+    required int totalInStock,
+    required String detailOfProduct,
+    required String categoryId,
+    required XFile? imageFile,
+  }) async {
+    var createProductRequest = CreateProductRequest(
+      urlRequest: _endpoints.createProductEndPoint,
+      name: name,
+      price: price,
+      totalInStock: totalInStock,
+      detailOfProduct: detailOfProduct,
+      categoryId: categoryId,
+    );
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(createProductRequest.url));
+
+      request.fields.addAll({
+        'productName': name,
+        'price': price.toString(),
+        'totalInStock': totalInStock.toString(),
+        'detailOfProduct': detailOfProduct,
+        'category': categoryId,
+      });
+
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        final mimeType = imageFile.mimeType ?? 'image/jpeg';
+        final multipartFile = http.MultipartFile.fromBytes(
+          'image',
+          bytes,
+          filename: imageFile.name,
+          contentType: MediaType.parse(mimeType),
+        );
+
+        request.files.add(multipartFile);
+      }
+
+      final response = await request.send();
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return const Right(true);
+      } else {
+        print('Error creating product: ${response.statusCode} - ${await response.stream.bytesToString()}');
+        return const Right(false);
+      }
+    } catch (e) {
+      print('Error creating product: $e');
       return Left(Fail(e.toString()));
     }
   }

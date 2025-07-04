@@ -5,8 +5,10 @@ import 'package:provider/provider.dart';
 
 class OrderDetailWidget extends StatefulWidget {
   final OrderModel order;
+  final VoidCallback? onUpdateStatus;
+  final VoidCallback? onUpdatePaymentStatus;
 
-  const OrderDetailWidget({super.key, required this.order});
+  const OrderDetailWidget({super.key, required this.order, this.onUpdateStatus, this.onUpdatePaymentStatus});
 
   @override
   State<OrderDetailWidget> createState() => _OrderDetailWidgetState();
@@ -14,6 +16,7 @@ class OrderDetailWidget extends StatefulWidget {
 
 class _OrderDetailWidgetState extends State<OrderDetailWidget> {
   late String _selectedStatus;
+  late String _selectedPaymentStatus;
 
   static const Map<String, String> statusMap = {
     'pending': 'Pendiente',
@@ -22,10 +25,18 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
     'cancelled': 'Cancelado',
   };
 
+  static const Map<String, String> paymentStatusMap = {
+    'pending': 'Pendiente',
+    'paid': 'Pagado',
+    'failed': 'Fallido',
+    'refunded': 'Reembolsado',
+  };
+
   @override
   void initState() {
     super.initState();
     _selectedStatus = _statusToDb(widget.order.status);
+    _selectedPaymentStatus = _paymentStatusToDb(widget.order.paymentStatus);
   }
 
   String _statusToDb(dynamic status) {
@@ -42,9 +53,34 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
     }
   }
 
+  String _paymentStatusToDb(dynamic status) {
+    final value = status.toString().split('.').last;
+    if (paymentStatusMap.containsKey(value)) return value;
+    switch (value) {
+      case 'pending':
+      case 'paid':
+      case 'failed':
+      case 'refunded':
+        return value;
+      default:
+        return 'pending';
+    }
+  }
+
   void _updateOrderStatus() {
     final homeViewmodel = context.read<HomeViewmodel>();
     homeViewmodel.updateOrderStatus(widget.order.id, _selectedStatus);
+    if (widget.onUpdateStatus != null) {
+      widget.onUpdateStatus!();
+    }
+  }
+
+  void _updateOrderPaymentStatus() {
+    final homeViewmodel = context.read<HomeViewmodel>();
+    homeViewmodel.updateOrderPaymentStatus(widget.order.id, _selectedPaymentStatus);
+    if (widget.onUpdatePaymentStatus != null) {
+      widget.onUpdatePaymentStatus!();
+    }
   }
 
   @override
@@ -54,6 +90,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Order ID: ${widget.order.id}'),
+          Text('Date Ordered: ${widget.order.dateOrderCreated}'), // <-- Add this line
           Row(
             children: [
               Text('Status: '),
@@ -88,7 +125,38 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
           ),
           Text('Tax Amount: ${widget.order.taxAmount}'),
           Text('Shipping Cost: ${widget.order.shippingCost}'),
-          Text('Payment Status: ${widget.order.getPaymentStatusText()}'),
+          Row(
+            children: [
+              Text('Payment Status: '),
+              DropdownButton<String>(
+                value: _selectedPaymentStatus,
+                items:
+                    paymentStatusMap.entries
+                        .map((entry) => DropdownMenuItem<String>(value: entry.key, child: Text(entry.value)))
+                        .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedPaymentStatus = value;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              Consumer<HomeViewmodel>(
+                builder: (context, homeViewmodel, _) {
+                  final isUpdating = homeViewmodel.state?.ordersState.isUpdatingOrderStatus ?? false;
+                  return ElevatedButton(
+                    onPressed: isUpdating ? null : _updateOrderPaymentStatus,
+                    child:
+                        isUpdating
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Text('Actualizar'),
+                  );
+                },
+              ),
+            ],
+          ),
           Text('Payment Method: ${widget.order.getPaymentMethodText()}'),
           Text('Total Payment: ${widget.order.totalPayment}'),
           const SizedBox(height: 16),
@@ -100,7 +168,6 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
           if (widget.order.address != null) ...[
             Text('Address:', style: TextStyle(fontWeight: FontWeight.bold)),
             Text('  Street: ${widget.order.address!.street}'),
-            Text('  City: ${widget.order.address!.city}'),
             Text('  Deparment: ${widget.order.address!.deparment}'),
             Text('  Country: ${widget.order.address!.country}'),
             const SizedBox(height: 16),

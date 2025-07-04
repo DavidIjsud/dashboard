@@ -35,4 +35,13 @@ abstract class HomeRepository {
   });
   Future<Either<Fail, bool>> suspendProduct(String id, bool suspendProduct);
   Future<Either<Fail, bool>> updateOrderStatu(String orderId, String status);
+  Future<Either<Fail, bool>> updatePaymentStatu(String orderId, String status);
+  Future<Either<Fail, bool>> createProduct({
+    required String name,
+    required num price,
+    required int totalInStock,
+    required String detailOfProduct,
+    required String categoryId,
+    required XFile? imageFile, // coming from image_picker
+  });
 }

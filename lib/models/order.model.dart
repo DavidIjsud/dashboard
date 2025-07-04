@@ -12,6 +12,7 @@ class OrderModel {
   User user;
   bool isOrderDeleted;
   Address? address;
+  String dateOrderCreated;
 
   OrderModel({
     required this.id,
@@ -24,6 +25,7 @@ class OrderModel {
     required this.products,
     required this.user,
     required this.isOrderDeleted,
+    required this.dateOrderCreated,
     this.address,
   });
 
@@ -39,6 +41,7 @@ class OrderModel {
     user: User.fromJson(json["user"]),
     isOrderDeleted: json["isOrderDeleted"],
     address: json["address"] != null ? Address.fromJson(json["address"]) : null,
+    dateOrderCreated: json["createdAt"],
   );
 
   String getOrderStatusText() {
@@ -86,7 +89,6 @@ class Address {
   double latituded;
   double longitude;
   String street;
-  String city;
   String deparment;
   String country;
 
@@ -94,7 +96,6 @@ class Address {
     required this.latituded,
     required this.longitude,
     required this.street,
-    required this.city,
     required this.deparment,
     required this.country,
   });
@@ -103,7 +104,6 @@ class Address {
     latituded: json["latituded"]?.toDouble(),
     longitude: json["longitude"]?.toDouble(),
     street: json["street"],
-    city: json["city"],
     deparment: json["deparment"],
     country: json["country"],
   );
@@ -112,7 +112,6 @@ class Address {
     "latituded": latituded,
     "longitude": longitude,
     "street": street,
-    "city": city,
     "deparment": deparment,
     "country": country,
   };
