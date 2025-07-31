@@ -2,5 +2,11 @@
     "getUsersEndPoint" : "http://localhost:3000/users/all",
     "getOrdersEndPoint" : "http://localhost:3000/orders/all",
     "getProductsEndPoint" : "http://localhost:3000/product/all",
-    "getCategoriesEndPoint" : "http://localhost:3000/category/all"
+    "getCategoriesEndPoint" : "http://localhost:3000/category/all",
+    "updateProductEndPoint" : "http://localhost:3000/product/update/{productId}",
+    "suspendProductEndPoint" : "http://localhost:3000/product/suspend/{productId}",
+    "getOrderDetailsEndPoint" : "http://localhost:3000/orders/order/{orderId}",
+    "updateOrderStatusEndPoint" : "http://localhost:3000/orders/update-order-status",
+    "updateOrderPaymentStatusEndPoint" : "http://localhost:3000/orders/update-payment-status",
+    "createProductEndPoint" : "http://localhost:3000/product/create"
 }

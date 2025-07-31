@@ -10,8 +10,13 @@ class UsersWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final HomeViewmodel homeViewmodel = context.read<HomeViewmodel>();
     homeViewmodel.getAllUsers();
+    final TextEditingController searchController = TextEditingController();
+
     return Consumer<HomeViewmodel>(
       builder: (_, homeViewModel, Widget? w) {
+        final usersState = homeViewModel.state;
+        final users = usersState?.filteredUsers ?? usersState?.users ?? [];
+
         return homeViewmodel.state?.isLoadingUsers == true
             ? Center(child: CircularProgressIndicator())
             : Padding(
@@ -28,6 +33,7 @@ class UsersWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: searchController,
                     decoration: InputDecoration(
                       hintText: 'Buscar usuario.',
                       border: OutlineInputBorder(
@@ -42,14 +48,23 @@ class UsersWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey, width: 1),
                       ),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.search, color: Colors.grey),
+                        onPressed: () {
+                          final value = searchController.text.trim();
+                          homeViewmodel.filterUsers(value);
+                        },
+                      ),
                     ),
                     keyboardType: TextInputType.text,
+                    onSubmitted: (value) {
+                      homeViewmodel.filterUsers(value.trim());
+                    },
                   ),
                   const SizedBox(height: 16),
-
                   Expanded(
                     child: GridView.builder(
-                      itemCount: homeViewModel.state?.users.length ?? 0,
+                      itemCount: users.length,
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 5,
                         crossAxisSpacing: 3,
@@ -57,8 +72,8 @@ class UsersWidget extends StatelessWidget {
                         childAspectRatio: 2.3,
                       ),
                       itemBuilder: (_, index) {
-                        final user = homeViewModel.state?.users[index];
-                        return UserItemCard(name: user?.name, email: user?.email, lastName: user?.lastName);
+                        final user = users[index];
+                        return UserItemCard(name: user?.name, lastName: user?.lastName, email: user?.email);
                       },
                     ),
                   ),

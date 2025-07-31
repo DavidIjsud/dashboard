@@ -143,6 +143,7 @@ class ProductsState extends Equatable {
 class HomeState extends Equatable {
   final bool isLoadingUsers;
   final List<UserModel> users;
+  final List<UserModel>? filteredUsers; // <-- Add this line
   final bool ocurredErrorOnGetUsers;
   final OrdersState ordersState;
   final ProductsState productsState;
@@ -152,6 +153,7 @@ class HomeState extends Equatable {
   const HomeState({
     this.isLoadingUsers = false,
     this.users = const [],
+    this.filteredUsers, // <-- Add this line
     this.ocurredErrorOnGetUsers = false,
     this.ordersState = const OrdersState(isLoadingOrders: false, orders: [], ocurredErrorOnGetOrders: false),
     this.productsState = const ProductsState(isLoadingProducts: false, products: [], ocurredErrorOnGetProducts: false),
@@ -162,6 +164,7 @@ class HomeState extends Equatable {
   copyWith({
     bool? isLoadingUsers,
     List<UserModel>? users,
+    List<UserModel>? filteredUsers, // <-- Add this line
     bool? ocurredErrorOnGetUsers,
     OrdersState? ordersState,
     ProductsState? productsState,
@@ -171,6 +174,7 @@ class HomeState extends Equatable {
     return HomeState(
       isLoadingUsers: isLoadingUsers ?? this.isLoadingUsers,
       users: users ?? this.users,
+      filteredUsers: filteredUsers ?? this.filteredUsers, // <-- Add this line
       ocurredErrorOnGetUsers: ocurredErrorOnGetUsers ?? this.ocurredErrorOnGetUsers,
       ordersState: ordersState ?? this.ordersState,
       productsState: productsState ?? this.productsState,
@@ -183,6 +187,7 @@ class HomeState extends Equatable {
   List<Object?> get props => [
     isLoadingUsers,
     users,
+    filteredUsers, // <-- Add this line
     ocurredErrorOnGetUsers,
     ordersState,
     productsState,
@@ -432,14 +437,27 @@ class HomeViewmodel extends BaseViewModel<HomeState> {
     setState(state?.copyWith(ordersState: state?.ordersState.copyWith(orders: state?.ordersState.allOrders)));
   }
 
+  void filterUsers(String value) {
+    final allUsers = state?.users ?? [];
+    if (value.isEmpty) {
+      setState(state?.copyWith(filteredUsers: null));
+      return;
+    }
+    List<UserModel> filtered;
+    if (value.contains('@')) {
+      filtered = allUsers.where((u) => (u.email ?? '').toLowerCase().contains(value.toLowerCase())).toList();
+    } else {
+      filtered = allUsers.where((u) => (u.name ?? '').toLowerCase().contains(value.toLowerCase())).toList();
+    }
+    setState(state?.copyWith(filteredUsers: filtered));
+  }
+
   Future<void> getAllUsers() async {
     setState(state?.copyWith(isLoadingUsers: true, ocurredErrorOnGetUsers: false));
-
     final responseUsers = await _homeRepository.getUsers();
-
     responseUsers.fold((fail) {
       setState(state?.copyWith(isLoadingUsers: false, ocurredErrorOnGetUsers: true));
-    }, (users) => setState(state?.copyWith(isLoadingUsers: false, users: users)));
+    }, (users) => setState(state?.copyWith(isLoadingUsers: false, users: users, filteredUsers: null)));
   }
 
   Future<void> suspendProduct(String id, bool suspendProduct) async {

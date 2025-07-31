@@ -1,8 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:petshopdashboard/components/widgets/modals.dart';
-import 'package:petshopdashboard/components/widgets/primary_button.dart';
+import 'package:petshopdashboard/modules/home/pages/widgets/user_detail.dart';
 
 class UserItemCard extends StatelessWidget {
   final String? name;
@@ -14,33 +11,27 @@ class UserItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Modals.openModal(
+        showDialog(
           context: context,
-          builder: (_) {
-            return Center(
-              child: Container(
-                width: 180,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 5, offset: const Offset(0, 3)),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      PrimaryButton(width: 160, height: 30, text: 'Eliminar', onTap: () {}),
-                      const SizedBox(height: 5.0),
-                      PrimaryButton(width: 160, height: 30, text: 'Mandar notificación', onTap: () {}),
-                    ],
+          builder:
+              (_) => Dialog(
+                child: SizedBox(
+                  width: 400,
+                  child: UserDetailWidget(
+                    name: name,
+                    lastName: lastName,
+                    email: email,
+                    onDelete: () {
+                      // TODO: Implement delete logic
+                      Navigator.of(context).pop();
+                    },
+                    onSendNotification: () {
+                      // TODO: Implement send notification logic
+                      Navigator.of(context).pop();
+                    },
                   ),
                 ),
               ),
-            );
-          },
         );
       },
       child: Card(
